@@ -1,6 +1,7 @@
 #include "system/System.hpp"
 
 int main(int argc, char *argv[]) {
+
     try {
         System system(argc, argv);
     }

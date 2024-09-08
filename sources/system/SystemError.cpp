@@ -27,21 +27,12 @@ void System::checkConfigFileSyntax(const std::string &configFile) const {
     std::ifstream config(configFile.c_str());
     std::string line;
     int openBraces = 0; // 중괄호의 균형을 체크하기 위한 변수
-    bool semicolonRequired = false; // 세미콜론 필요 여부 체크
+    bool semicolonRequired;
 
     while (std::getline(config, line)) {
-        trim(line); // 좌우 공백 제거
-
-        if (line.empty()) continue; // 빈 줄은 무시
-
-        // 중괄호 앞뒤 문자가 있는지 확인
-        // if (line.find("{") != std::string::npos && (line.find("{") != line.find_first_not_of(" \t"))) {
-        //     throw ConfigFileSyntaxException();
-        // }
-        // if (line.find("}") != std::string::npos && (line.find("}") != line.find_first_not_of(" \t"))) {
-        //     throw ConfigFileSyntaxException();
-        // }
-
+        semicolonRequired = true; // 세미콜론이 필요한 경우로 초기화
+        trim(line); if (line.empty()) continue; // 빈 줄은 무시
+    
         // 중괄호 균형 체크
         for (size_t i = 0; i < line.size(); i++) {
             char c = line[i];
@@ -56,10 +47,12 @@ void System::checkConfigFileSyntax(const std::string &configFile) const {
             }
         }
 
-        // 블록을 포함하지 않는 라인에서 세미콜론 검사
-        if (openBraces == 0 && line.back() != ';') {
-            throw ConfigFileSyntaxException();
-        }
+        if (semicolonRequired) {
+            if (line.back() != ';')
+                throw ConfigFileSyntaxException();
+        } else // !semicolonRequired
+            if (line.back() == ';')
+                throw ConfigFileSyntaxException();
     }
 
     // 파일이 끝났을 때 중괄호가 맞지 않는 경우
