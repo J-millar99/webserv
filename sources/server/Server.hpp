@@ -1,10 +1,12 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <exception>
 #include <iostream>
-#include <vector>
-
+#include <list>
+#include <fstream>
+#include <sstream>
+#include <unistd.h>
+#include <string>
 enum Method
 {
     GET = 1 << 0,
@@ -16,7 +18,7 @@ struct Location
 {
     std::string root;
     std::string index;
-    Method method;
+    int methods;
     bool autoindex;
 };
 
@@ -26,11 +28,19 @@ class Server
         Server();
         Server(const Server &ref);
         Server &operator=(const Server &ref);
-    
+
+        int port;
+        std::list<std::string> server_names;
+        std::string error_page;
+        int limit_client_body_size;
+        std::list<Location> locations;
+
     public:
-        Server(std::string configFile);
         ~Server();
- 
+        Server(const std::string &configBlock);
+        void parseServerBlock(const std::string &configBlock);
+        Location parseLocationBlock(const std::string &locationBlock);
 };
 
+void trim(std::string &str);
 #endif
