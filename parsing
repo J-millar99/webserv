@@ -1,0 +1,66 @@
+다음은 nginx.conf를 참고하여 만든 default.conf파일의 예시야
+server
+{
+    listen 80;
+    server_name example.com www.example.com;
+
+    error_page error.html;
+    limit_client_body_size 0;
+
+    location / {
+        root /html;
+        index index.html;
+        methods GET;
+        autoindex on;
+    }
+}
+다음 클래스를 참고하여 c++98을 준수하는 System::parseConfigFile, Server::parseLocationBlock, Server::parseServerBlock 멤버함수들을 만들어줘.
+중괄호와 세미콜론 파싱의 엄격한 수준은 nginx.conf의 방식을 반드시 따라야만 해
+완벽하게 구현할수록 높은 값을 지불할게.
+
+class System
+{
+    private:
+        System();
+        System(const System &ref);
+        System &operator=(const System &ref);
+        std::list<Server> servers;
+    public:
+        System(int argc, char *argv[]);
+        ~System();
+        void buildServers(const std::string &configFile);  
+}
+
+enum Method
+{
+    GET = 1 << 0,
+    POST = 1 << 1,
+    DELETE = 1 << 2
+}
+
+struct Location
+{
+    std::string root;
+    std::string index;
+    int methods;
+    bool autoindex;
+}
+
+class Server
+{
+    private:
+        Server &operator=(const Server &ref);
+
+        int port;
+        std::list<std::string> server_names;
+        std::string error_page;
+        int limit_client_body_size;
+        std::list<Location> locations;
+
+    public:
+        Server();
+        Server(const Server &ref);
+        ~Server();
+        void parseServerBlock(const std::string &configBlock);
+        Location parseLocationBlock(const std::string &locationBlock);
+}

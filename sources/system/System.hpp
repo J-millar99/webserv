@@ -18,8 +18,7 @@ class System
 
         void checkArgumentNumber(int argc) const;
         void checkConfigFileExist(const char *configFile) const;
-    
-        void buildServers(const std::string &configFile);  
+        void parseConfigFile(const std::string &configFile);  
 };
 
 #endif

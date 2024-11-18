@@ -25,8 +25,6 @@ struct Location
 class Server
 {
     private:
-        Server();
-        Server(const Server &ref);
         Server &operator=(const Server &ref);
 
         int port;
@@ -36,11 +34,14 @@ class Server
         std::list<Location> locations;
 
     public:
+        Server();
+        Server(const Server &ref);
         ~Server();
-        Server(const std::string &configBlock);
         void parseServerBlock(const std::string &configBlock);
         Location parseLocationBlock(const std::string &locationBlock);
+        void printInfo();
 };
 
 void trim(std::string &str);
+bool countChar(const std::string &str, char ch);
 #endif

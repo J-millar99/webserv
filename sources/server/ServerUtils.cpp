@@ -10,77 +10,65 @@ void trim(std::string &str) {
     str = str.substr(first, (last - first + 1));
 }
 
-void Server::parseServerBlock(const std::string &configBlock) {
+bool countChar(const std::string &str, char ch) {
+    int count = 0;
+    for (size_t i = 0; i < str.length(); ++i) {
+        if (str[i] == ch)
+            ++count;
+        if (count > 1)
+            return false;  // 두 개 이상 있으면 바로 false
+    }
+    return count == 1;  // 정확히 한 개 있는지 확인
+}
+
+
+void Server::parseServerBlock(const std::string &configBlock)
+{
     std::istringstream stream(configBlock);
     std::string line;
-    bool hasListen = false;
-    bool hasErrorPage = false;
-    bool hasLimitClientBodySize = false;
+    bool locationBlockStarted = false;
+    std::string locationBlock;
 
     while (std::getline(stream, line)) {
         trim(line);
-        if (line.empty()) continue;
 
-        // 세미콜론 확인
-        if (line.back() != ';')
-            throw std::runtime_error("Missing semicolon at the end of the line: " + line);
-
-        // 세미콜론 제거
-        line = line.substr(0, line.size() - 1);
-
-        std::istringstream iss(line);
-        std::string key;
-        iss >> key;
-
-        if (key == "listen") {
-            int portValue;
-            iss >> portValue;
-            if (!iss || portValue <= 0)
-                throw std::runtime_error("Invalid port number.");
-            port = portValue;
-            hasListen = true;
+        if (line.find("listen") == 0) {
+            if (line.back() != ';')
+                throw std::runtime_error("Missing semicolon in 'listen' directive");
+            port = std::atoi(line.substr(7, line.size() - 8).c_str()); // "listen " 이후 숫자 추출
         }
-        else if (key == "server_name") {
-            std::string name;
-            while (iss >> name)
-                server_names.push_back(name);
+        else if (line.find("server_name") == 0) {
+            if (line.back() != ';')
+                throw std::runtime_error("Missing semicolon in 'server_name' directive");
+            server_names.push_back(line.substr(12, line.size() - 13)); // "server_name " 이후 문자열 추출
         }
-        else if (key == "error_page"){
-            iss >> error_page;
-            if (error_page.empty())
-                throw std::runtime_error("Invalid error_page value.");
-            hasErrorPage = true;
+        else if (line.find("error_page") == 0) {
+            if (line.back() != ';')
+                throw std::runtime_error("Missing semicolon in 'error_page' directive");
+            error_page = line.substr(11, line.size() - 12); // "error_page " 이후 문자열 추출
         }
-        else if (key == "limit_client_body_size") {
-            int size;
-            iss >> size;
-            if (!iss || size < 0)
-                throw std::runtime_error("Invalid limit_client_body_size value.");
-            limit_client_body_size = size;
-            hasLimitClientBodySize = true;
+        else if (line.find("limit_client_body_size") == 0) {
+            if (line.back() != ';')
+                throw std::runtime_error("Missing semicolon in 'limit_client_body_size' directive");
+            limit_client_body_size = std::atoi(line.substr(23, line.size() - 24).c_str()); // 숫자 추출
         }
-        else if (key == "location") {
-            std::string locationBlock;
-            std::string locLine;
-            if (line.find("{") == std::string::npos)
-                throw std::runtime_error("Missing opening brace for location block.");
-
-            while (std::getline(stream, locLine)) {
-                trim(locLine);
-                locationBlock += locLine + "\n";
-                if (locLine == "}")
-                    break;
+        else if (line.find("location") == 0) {
+            locationBlockStarted = true;
+            locationBlock = line + "\n"; // location 블록 시작
+        }
+        else if (locationBlockStarted) {
+            locationBlock += line + "\n";
+            if (line.find('}') != std::string::npos) {
+                locations.push_back(parseLocationBlock(locationBlock));
+                locationBlock.clear();
+                locationBlockStarted = false;
             }
-            Location loc = parseLocationBlock(locationBlock);
-            locations.push_back(loc);
         }
         else
-            throw std::runtime_error("Unknown directive in server block: " + key);
+            throw std::runtime_error("Unknown directive in server block");
     }
-    // 필수 필드 확인
-    if (!hasListen || !hasErrorPage || !hasLimitClientBodySize)
-        throw std::runtime_error("Missing required fields in server block.");
 }
+
 
 // location 블록 파싱
 Location Server::parseLocationBlock(const std::string &locationBlock) {
@@ -150,4 +138,28 @@ Location Server::parseLocationBlock(const std::string &locationBlock) {
     if (!hasRoot || !hasIndex || !hasMethods || !hasAutoindex)
         throw std::runtime_error("Missing required fields in server block.");
     return loc;
+}
+
+void Server::printInfo() {
+    std::cout << "Port: " << port << std::endl;
+    std::cout << "Server names: ";
+    for (std::list<std::string>::iterator it = server_names.begin(); it != server_names.end(); ++it)
+        std::cout << *it << " ";
+    std::cout << std::endl;
+    std::cout << "Error page: " << error_page << std::endl;
+    std::cout << "Limit client body size: " << limit_client_body_size << std::endl;
+    std::cout << "Locations: " << std::endl;
+    for (std::list<Location>::iterator it = locations.begin(); it != locations.end(); ++it) {
+        std::cout << "Root: " << it->root << std::endl;
+        std::cout << "Index: " << it->index << std::endl;
+        std::cout << "Methods: ";
+        if (it->methods & GET)
+            std::cout << "GET ";
+        if (it->methods & POST)
+            std::cout << "POST ";
+        if (it->methods & DELETE)
+            std::cout << "DELETE ";
+        std::cout << std::endl;
+        std::cout << "Autoindex: " << (it->autoindex ? "on" : "off") << std::endl;
+    }
 }
