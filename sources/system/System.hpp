@@ -17,8 +17,9 @@ class System
         ~System();
 
         void checkArgumentNumber(int argc) const;
-        void checkConfigFileExist(const char *configFile) const;
+        void checkConfigFileValidate(const char *configFile) const;
         void parseConfigFile(const std::string &configFile);  
+        void splitServerBlock(std::string& lineBlock);
 };
 
 #endif

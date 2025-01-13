@@ -1,75 +1,76 @@
 #include "System.hpp"
 
-System::System() { /* Unused */ }
-System::System(const System &ref) { /* Unused */
-    (void)ref;
-}
-System &System::operator=(const System &ref) { /* Unused */
-    (void)ref;
-    return *this;
-}
+System::System() { } /* Unused */ 
+System::System(const System &ref) {(void)ref;} /* Unused */
+System &System::operator=(const System &ref) { (void)ref; return *this; } /* Unused */
 System::~System() { /* Unused */ }
 
 System::System(int argc, char *argv[]) {
-    if (!argv[1])
+    if (!argv[1])   // 인자가 없을 경우 디폴트 config파일
         argv[1] = (char *)DEFAULT_CONFIG_FILE;
-    checkArgumentNumber(argc);
-    checkConfigFileExist(argv[1]);
-    parseConfigFile(argv[1]);
+    checkArgumentNumber(argc);  // 인자 개수 확인
+    checkConfigFileValidate(argv[1]);   // 파일 권한과 여부 확인
+    parseConfigFile(argv[1]);   // 파싱
+    for (std::list<Server>::iterator it = servers.begin(); it != servers.end(); ++it) {
+        it->printInfo();
+    }
 }
 
-void System::parseConfigFile(const std::string &configFile)
+void System::parseConfigFile(const std::string& configFile)
 {
-    std::ifstream file(configFile.c_str());
-    if (!file.is_open())
-        throw std::runtime_error("Cannot open config file: " + configFile);
+    std::ifstream file(configFile.c_str()); // 파일 스트림
+    std::string line; // 읽을 줄
+    std::string lineBlock; // 읽은 줄
 
-    std::string line;
-    std::string currentBlock;
-    bool inServerBlock = false;
-    
+    // 줄바꿈을 모두 제거하여 한 줄로 읽음 : 어떻게 적힐지 모르기 때문에 통일
     while (std::getline(file, line)) {
         trim(line);
-
-        // 주석은 무시
         if (line.empty() || line[0] == '#')
-            continue;
-
-        // server 블록 시작 확인 (server 키워드를 찾고, 여는 중괄호가 붙어있거나, 이후 줄에서 찾아야 함)
-        if (!inServerBlock && line.find("server") != std::string::npos)
-        {
-            inServerBlock = true; // server 블록 시작 감지
-            currentBlock.clear(); // 현재 블록 초기화
-            currentBlock += line; // 현재 줄을 저장
-            if (countChar(line, '{') == 0) // 중괄호가 같은 줄에 없으면 계속 읽음
-            {
-                while (std::getline(file, line))
-                {
-                    trim(line);
-                    if (line.empty() || line[0] == '#')
-                        continue; // 주석이나 빈 줄 무시
-                    currentBlock += line;
-                    if (countChar(line, '{') > 0)
-                        break; // 여는 중괄호를 찾으면 중단
-                }
-            }
-        }
-
-        // server 블록 내부 처리
-        if (inServerBlock)
-        {
-            currentBlock += line;
-
-            // 여는 중괄호와 닫는 중괄호의 수가 같으면 server 블록이 끝난 것
-            if (countChar(currentBlock, '{') == countChar(currentBlock, '}'))
-            {
-                Server server;
-                server.parseServerBlock(currentBlock);
-                servers.push_back(server);
-                inServerBlock = false; // 블록 종료
-                currentBlock.clear(); // 다음 블록을 위해 초기화
-            }
-        }
+            continue; // 주석이나 빈 줄 무시
+        lineBlock += line;
     }
+    splitServerBlock(lineBlock);
     file.close();
+}
+
+void System::splitServerBlock(std::string& lineBlock) {
+    std::string::size_type idx = 0; // 커서 위치 인덱스
+    bool inServerBlock = false; //  서버 블록 판단 변수
+    size_t bracketCount = 0;    // 중괄호 로킹 프로토콜
+
+    // lineBlock은 현재 파일 전체의 내용
+    while (true) {
+        char cursor = lineBlock[idx];
+        if (!cursor)    break;
+
+        if (cursor == '{')
+            ++bracketCount;
+        else if (cursor == '}')
+            --bracketCount;
+
+        // 서버 블록이 아닐 때 첫 '{'는 서버 블록의 시작을 의미
+        if (!inServerBlock && cursor == '{') {
+            inServerBlock = true;
+            std::string serverDirective = lineBlock.substr(0, idx); // idx는 중괄호 기호에 위치
+            trim(serverDirective); // "server {" 꼴로 입력된 부분에서 "server "만 남기고 좌우 공백 제거
+            if (serverDirective != "server")    // 서버 디렉티브가 아니면 에러
+                throw std::runtime_error("Missing 'server' directive");
+        } else if (inServerBlock && !bracketCount) {    // 서버 블록일 때, 괄호가 모두 닫혔으면 한 개의 서버
+            // 서버 한 블록을 떼내고 라인 블록은 다음 "server {"를 읽도록 위치 시킴
+            std::string serverBlock = lineBlock.substr(0, idx + 1);
+            lineBlock = lineBlock.substr(idx + 1, lineBlock.size() - idx);
+
+            // 서버 생성
+            Server server;
+            server.parseServerBlock(serverBlock);
+            servers.push_back(server);
+
+            // 변수 초기화
+            inServerBlock = false;
+            idx = -1;
+        }
+        ++idx;
+    }
+    if (bracketCount != 0) // 괄호 개수가 안맞으면 문법 에러
+        std::runtime_error("syntax error");
 }

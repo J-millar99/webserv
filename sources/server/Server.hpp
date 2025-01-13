@@ -1,12 +1,8 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <iostream>
-#include <list>
-#include <fstream>
-#include <sstream>
-#include <unistd.h>
-#include <string>
+#include "../utils.hpp"
+
 enum Method
 {
     GET = 1 << 0,
@@ -16,10 +12,12 @@ enum Method
 
 struct Location
 {
+    // 5개는 반드시 존재해야 함
+    std::string urlType;
     std::string root;
     std::string index;
     int methods;
-    bool autoindex;
+    bool autoIndex;
 };
 
 class Server
@@ -27,9 +25,10 @@ class Server
     private:
         Server &operator=(const Server &ref);
 
+        // 포트, 바디사이즈, route(location)은 반드시 존재해야함.
         int port;
         std::list<std::string> server_names;
-        std::string error_page;
+        std::list<std::string> error_pages;
         int limit_client_body_size;
         std::list<Location> locations;
 
@@ -37,11 +36,12 @@ class Server
         Server();
         Server(const Server &ref);
         ~Server();
-        void parseServerBlock(const std::string &configBlock);
-        Location parseLocationBlock(const std::string &locationBlock);
+        void parseServerBlock(std::string &serverBlock);
+        bool settingServerBlock(std::vector<std::string>& strs, size_t size);
+        void parseLocationBlock(std::string &locationBlock);
+        bool settingLocationBlock(std::vector<std::string>& strs, size_t size, Location &loc);
+        void checkField();
         void printInfo();
 };
 
-void trim(std::string &str);
-bool countChar(const std::string &str, char ch);
 #endif
