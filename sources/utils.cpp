@@ -49,3 +49,7 @@ int stringToInt(std::string& str) {
         return -1;  // int값을 넘었거나 문자열의 끝에 도달하지 못했다면
     return static_cast<int>(result);
 }
+
+void errorHandling(std::string errorString) {
+    std::cout << errorString + ":" << strerror(errno) << std::endl;
+}

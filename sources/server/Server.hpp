@@ -2,6 +2,14 @@
 #define SERVER_HPP
 
 #include "../utils.hpp"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/event.h>
+#include <netinet/in.h>
+#include <fcntl.h>
+
+#define BUFFER_SIZE 1024
+#define MAX_CLIENTS 10
 
 enum Method
 {
@@ -13,11 +21,11 @@ enum Method
 struct Location
 {
     // 5개는 반드시 존재해야 함
-    std::string urlType;
+    std::string url_type;
     std::string root;
     std::string index;
     int methods;
-    bool autoIndex;
+    bool auto_index;
 };
 
 class Server
@@ -32,16 +40,29 @@ class Server
         int limit_client_body_size;
         std::list<Location> locations;
 
+        // 서버 소켓 필드
+        int server_socket;
+        struct sockaddr_in server_addr;
+        char buffer[BUFFER_SIZE];
+
     public:
         Server();
         Server(const Server &ref);
         ~Server();
+
+        // ServerUtils
         void parseServerBlock(std::string &serverBlock);
         bool settingServerBlock(std::vector<std::string>& strs, size_t size);
         void parseLocationBlock(std::string &locationBlock);
         bool settingLocationBlock(std::vector<std::string>& strs, size_t size, Location &loc);
         void checkField();
         void printInfo();
+        int getServerSocket() const;
+        bool isServerSocket(int socket_fd) const;
+
+        // Server
+        void settingServer();
+        void handleClient(int client_socket);
 };
 
 #endif

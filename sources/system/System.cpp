@@ -11,66 +11,92 @@ System::System(int argc, char *argv[]) {
     checkArgumentNumber(argc);  // 인자 개수 확인
     checkConfigFileValidate(argv[1]);   // 파일 권한과 여부 확인
     parseConfigFile(argv[1]);   // 파싱
+    // for (std::list<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
+    //     it->printInfo();
+    runServers();
+}
+
+void System::runServers() {
+    if ((kq = kqueue()) == -1)
+        throw std::runtime_error("kqueue error");
+    
     for (std::list<Server>::iterator it = servers.begin(); it != servers.end(); ++it) {
-        it->printInfo();
+        it->settingServer();
+
+        // 각 서버의 소켓을 kqueue에 등록
+        struct kevent server_event;
+        EV_SET(&server_event, it->getServerSocket(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        if (kevent(kq, &server_event, 1, NULL, 0, NULL) == -1)
+            throw std::runtime_error("kevent registration failed"); 
+
+        // 소켓과 서버를 매핑
+        socket_to_server[it->getServerSocket()] = &(*it);
     }
-}
 
-void System::parseConfigFile(const std::string& configFile)
-{
-    std::ifstream file(configFile.c_str()); // 파일 스트림
-    std::string line; // 읽을 줄
-    std::string lineBlock; // 읽은 줄
-
-    // 줄바꿈을 모두 제거하여 한 줄로 읽음 : 어떻게 적힐지 모르기 때문에 통일
-    while (std::getline(file, line)) {
-        trim(line);
-        if (line.empty() || line[0] == '#')
-            continue; // 주석이나 빈 줄 무시
-        lineBlock += line;
-    }
-    splitServerBlock(lineBlock);
-    file.close();
-}
-
-void System::splitServerBlock(std::string& lineBlock) {
-    std::string::size_type idx = 0; // 커서 위치 인덱스
-    bool inServerBlock = false; //  서버 블록 판단 변수
-    size_t bracketCount = 0;    // 중괄호 로킹 프로토콜
-
-    // lineBlock은 현재 파일 전체의 내용
-    while (true) {
-        char cursor = lineBlock[idx];
-        if (!cursor)    break;
-
-        if (cursor == '{')
-            ++bracketCount;
-        else if (cursor == '}')
-            --bracketCount;
-
-        // 서버 블록이 아닐 때 첫 '{'는 서버 블록의 시작을 의미
-        if (!inServerBlock && cursor == '{') {
-            inServerBlock = true;
-            std::string serverDirective = lineBlock.substr(0, idx); // idx는 중괄호 기호에 위치
-            trim(serverDirective); // "server {" 꼴로 입력된 부분에서 "server "만 남기고 좌우 공백 제거
-            if (serverDirective != "server")    // 서버 디렉티브가 아니면 에러
-                throw std::runtime_error("Missing 'server' directive");
-        } else if (inServerBlock && !bracketCount) {    // 서버 블록일 때, 괄호가 모두 닫혔으면 한 개의 서버
-            // 서버 한 블록을 떼내고 라인 블록은 다음 "server {"를 읽도록 위치 시킴
-            std::string serverBlock = lineBlock.substr(0, idx + 1);
-            lineBlock = lineBlock.substr(idx + 1, lineBlock.size() - idx);
-
-            // 서버 생성
-            Server server;
-            server.parseServerBlock(serverBlock);
-            servers.push_back(server);
-
-            // 변수 초기화
-            inServerBlock = false;
-            idx = -1;
+    struct timespec timeout;
+    timeout.tv_sec = 1;
+    timeout.tv_nsec = 0;
+    while (1) {
+        struct kevent event_list[MAX_EVENTS];
+        int new_events = kevent(kq, NULL, 0, event_list, MAX_EVENTS, &timeout);
+        
+        if (new_events == -1) {
+            if (errno == EINTR) continue;  // Interrupted system call
+            throw std::runtime_error("System kevent error");
         }
-        ++idx;
+
+        for (int i = 0; i < new_events; i++) {
+            int current_socket = event_list[i].ident;
+            
+            // Check if this is a server socket
+            if (socket_to_server.find(current_socket) != socket_to_server.end() &&
+                socket_to_server[current_socket]->isServerSocket(current_socket)) {
+                
+                Server* current_server = socket_to_server[current_socket];
+                struct sockaddr_in client_addr;
+                socklen_t client_len = sizeof(client_addr);
+                
+                int client_socket = accept(current_socket, (struct sockaddr*)&client_addr, &client_len);
+                
+                if (client_socket == -1) {
+                    if (errno != EAGAIN && errno != EWOULDBLOCK) {
+                        std::cerr << "Accept error: " << strerror(errno) << std::endl;
+                    }
+                    continue;
+                }
+
+                // Set non-blocking mode for client socket
+                int flags = fcntl(client_socket, F_GETFL, 0);
+                if (flags == -1 || fcntl(client_socket, F_SETFL, flags | O_NONBLOCK) == -1) {
+                    close(client_socket);
+                    continue;
+                }
+
+                // Register client socket for reading
+                struct kevent client_event;
+                EV_SET(&client_event, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+                
+                if (kevent(kq, &client_event, 1, NULL, 0, NULL) == -1) {
+                    close(client_socket);
+                    continue;
+                }
+
+                socket_to_server[client_socket] = current_server;
+            }
+            else {
+                // Handle client socket event
+                if (event_list[i].flags & (EV_ERROR | EV_EOF)) {
+                    close(current_socket);
+                    socket_to_server.erase(current_socket);
+                    continue;
+                }
+
+                Server* current_server = socket_to_server[current_socket];
+                if (current_server) {
+                    current_server->handleClient(current_socket);
+                }
+                socket_to_server.erase(current_socket);
+            }
+        }
     }
-    if (bracketCount != 0) // 괄호 개수가 안맞으면 문법 에러
-        std::runtime_error("syntax error");
 }

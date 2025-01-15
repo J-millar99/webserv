@@ -4,9 +4,12 @@ CPP = c++
 
 SRCS = sources/main.cpp sources/utils.cpp \
 		sources/system/System.cpp \
+		sources/system/SystemParser.cpp \
 		sources/system/SystemUtils.cpp \
 		sources/server/Server.cpp \
-		sources/server/ServerUtils.cpp
+		sources/server/ServerParser.cpp \
+		sources/server/ServerUtils.cpp \
+		
 		
 OBJS = $(SRCS:.cpp=.o)
 

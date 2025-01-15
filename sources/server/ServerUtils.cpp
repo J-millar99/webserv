@@ -12,7 +12,7 @@ void Server::printInfo() {
     std::cout << "Limit client body size: " << limit_client_body_size << std::endl;
     std::cout << "Locations: " << std::endl;
     for (std::list<Location>::iterator it = locations.begin(); it != locations.end(); ++it) {
-        std::cout << "UrlType: " << it->urlType << std::endl;
+        std::cout << "Url_type: " << it->url_type << std::endl;
         std::cout << "Root: " << it->root << std::endl;
         std::cout << "Index: " << it->index << std::endl;
         std::cout << "Methods: ";
@@ -23,7 +23,7 @@ void Server::printInfo() {
         if (it->methods & DELETE)
             std::cout << "DELETE ";
         std::cout << std::endl;
-        std::cout << "Autoindex: " << (it->autoIndex ? "on" : "off") << std::endl;
+        std::cout << "Autoindex: " << (it->auto_index ? "on" : "off") << std::endl;
     }
 }
 
@@ -33,7 +33,15 @@ void Server::checkField() {
     else if (limit_client_body_size == -1)
         throw std::runtime_error("limit_client_body_size is not allocated");
     for (std::list<Location>::iterator it = locations.begin(); it != locations.end(); it++) {
-        if (it->urlType == "" || it->root == "" || it->index == "" || it->methods == 0)
+        if (it->url_type == "" || it->root == "" || it->index == "" || it->methods == 0)
             throw std::runtime_error("all location directives must have be defined");
     }
+}
+
+int Server::getServerSocket() const {
+    return this->server_socket;
+}
+
+bool Server::isServerSocket(int socket_fd) const {
+    return socket_fd == server_socket; 
 }

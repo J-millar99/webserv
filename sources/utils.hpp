@@ -14,5 +14,6 @@ void trim(std::string &str);
 int countChar(const std::string &str, char ch);
 std::vector<std::string> splitString(std::string& input);
 int stringToInt(std::string& str);
+void errorHandling(std::string errorString);
 
 #endif
