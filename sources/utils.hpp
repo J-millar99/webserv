@@ -15,5 +15,6 @@ int countChar(const std::string &str, char ch);
 std::vector<std::string> splitString(std::string& input);
 int stringToInt(std::string& str);
 void errorHandling(std::string errorString);
+void signalHandling(int signum);
 
 #endif

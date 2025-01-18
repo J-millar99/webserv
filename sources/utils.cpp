@@ -53,3 +53,11 @@ int stringToInt(std::string& str) {
 void errorHandling(std::string errorString) {
     std::cout << errorString + ":" << strerror(errno) << std::endl;
 }
+
+void signalHandling(int signum) {
+    if (signum == SIGINT) {
+        std::cout << "\r" << std::flush;
+        std::cout << "SIGINT signal received" << std::endl;
+        exit(0);
+    }
+}

@@ -38,8 +38,22 @@ void Server::settingServer() {
 
 void Server::handleClient(int client_socket) {
     char buffer[BUFFER_SIZE];
+    static int count = 0;
+    std::cout << "호춣 횟수 : " << count++ << std::endl;
     memset(buffer, 0, BUFFER_SIZE);
-    ssize_t n = read(client_socket, buffer, BUFFER_SIZE - 1);
+    // 첫 번째 recv
+    ssize_t n = recv(client_socket, buffer, sizeof(buffer),0);
+    std::cout << "First recv - Bytes received: " << n << std::endl;
+    std::cout << "Buffer contents: " << buffer << std::endl;
+
+    // 버퍼 초기화
+    memset(buffer, 0, BUFFER_SIZE);
+
+    std::cout << "========== 절 취 선 ==========" << std::endl;
+    // 두 번째 recv
+    ssize_t n1 = recv(client_socket, buffer, sizeof(buffer),0);
+    std::cout << "Second recv - Bytes received: " << n1 << std::endl;
+    std::cout << "Buffer contents: " << buffer << std::endl;
 
     if (n <= 0) {
         close(client_socket);

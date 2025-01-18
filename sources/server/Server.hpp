@@ -2,6 +2,7 @@
 #define SERVER_HPP
 
 #include "../utils.hpp"
+#include "../http/HttpHeader.hpp"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/event.h>
@@ -51,14 +52,16 @@ class Server
         ~Server();
 
         // ServerUtils
+        void checkField();
+        int getServerSocket() const;
+        bool isServerSocket(int socket_fd) const;
+        void printInfo();
+
+        // ServerParser
         void parseServerBlock(std::string &serverBlock);
         bool settingServerBlock(std::vector<std::string>& strs, size_t size);
         void parseLocationBlock(std::string &locationBlock);
         bool settingLocationBlock(std::vector<std::string>& strs, size_t size, Location &loc);
-        void checkField();
-        void printInfo();
-        int getServerSocket() const;
-        bool isServerSocket(int socket_fd) const;
 
         // Server
         void settingServer();

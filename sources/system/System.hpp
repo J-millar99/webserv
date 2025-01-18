@@ -25,14 +25,18 @@ class System
         System(int argc, char *argv[]);
         ~System();
 
-        // SystemParser
+        // SystemUtils
         void checkArgumentNumber(int argc) const;
         void checkConfigFileValidate(const char *configFile) const;
+        
+        // SystemParser
         void parseConfigFile(const std::string &configFile);  
         void splitServerBlock(std::string& lineBlock);
 
         // System
         void runServers();
+        void socketInKqueue();
+        void printPort();
 };
 
 #endif
