@@ -3,7 +3,9 @@
 System::System() { } /* Unused */ 
 System::System(const System &ref) {(void)ref;} /* Unused */
 System &System::operator=(const System &ref) { (void)ref; return *this; } /* Unused */
-System::~System() { /* Unused */ }
+System::~System() { g_system = nullptr; }
+
+System* g_system = nullptr;
 
 void System::printPort() {
     std::cout << "Server is running ont port ";
@@ -18,8 +20,8 @@ System::System(int argc, char *argv[]) {
     checkArgumentNumber(argc);  // 인자 개수 확인
     checkConfigFileValidate(argv[1]);   // 파일 권한과 여부 확인
     parseConfigFile(argv[1]);   // 파싱
-    signal(SIGINT, signalHandling); // 시그널 핸들러 등록
     printPort();
+    socketInKqueue();
     runServers();
 }
 
@@ -39,11 +41,11 @@ void System::socketInKqueue() {
         // 소켓과 서버를 매핑
         socket_to_server[it->getServerSocket()] = &(*it);
     }
+    g_system = this;
+    signal(SIGINT, signalHandling); // 시그널 핸들러 등록
 }
 
 void System::runServers() {
-    socketInKqueue();
-
     struct timespec timeout;
     timeout.tv_sec = 1;
     timeout.tv_nsec = 0;

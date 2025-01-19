@@ -33,6 +33,7 @@ class Server
 {
     private:
         Server &operator=(const Server &ref);
+        Server(const Server &ref);
 
         // 포트, 바디사이즈, route(location)은 반드시 존재해야함.
         int port;
@@ -48,7 +49,6 @@ class Server
 
     public:
         Server();
-        Server(const Server &ref);
         ~Server();
 
         // ServerUtils

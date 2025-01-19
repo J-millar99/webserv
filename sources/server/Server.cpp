@@ -1,14 +1,8 @@
 #include "Server.hpp"
 
 Server &Server::operator=(const Server &ref) { (void)ref; return *this; } /* Unused */
-Server::~Server() { /* Unused */ }
-Server::Server(const Server &ref) {
-    this->port = ref.port;
-    this->server_names = ref.server_names;
-    this->error_pages = ref.error_pages;
-    this->limit_client_body_size = ref.limit_client_body_size;
-    this->locations = ref.locations;
-}
+Server::~Server() { } /* Unused */
+Server::Server(const Server &ref) { (void)ref; } /* Unused */
 Server::Server() {
     port = 0;
     limit_client_body_size = -1;
@@ -38,23 +32,9 @@ void Server::settingServer() {
 
 void Server::handleClient(int client_socket) {
     char buffer[BUFFER_SIZE];
-    static int count = 0;
-    std::cout << "호춣 횟수 : " << count++ << std::endl;
-    memset(buffer, 0, BUFFER_SIZE);
-    // 첫 번째 recv
-    ssize_t n = recv(client_socket, buffer, sizeof(buffer),0);
-    std::cout << "First recv - Bytes received: " << n << std::endl;
-    std::cout << "Buffer contents: " << buffer << std::endl;
-
-    // 버퍼 초기화
     memset(buffer, 0, BUFFER_SIZE);
 
-    std::cout << "========== 절 취 선 ==========" << std::endl;
-    // 두 번째 recv
-    ssize_t n1 = recv(client_socket, buffer, sizeof(buffer),0);
-    std::cout << "Second recv - Bytes received: " << n1 << std::endl;
-    std::cout << "Buffer contents: " << buffer << std::endl;
-
+    ssize_t n = recv(client_socket, buffer, sizeof(buffer), 0);
     if (n <= 0) {
         close(client_socket);
         return;
