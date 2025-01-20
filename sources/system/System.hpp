@@ -30,6 +30,7 @@ class System
         // SystemParser
         void parseConfigFile(const std::string &configFile);  
         void splitServerBlock(std::string& lineBlock);
+        void specifyDefaultServer();
 
         // System
         void runServers();
@@ -37,7 +38,7 @@ class System
         void printPort();
 };
 
-extern System* g_system;
+extern System *g_system;
 void signalHandling(int signum);
 
 #endif

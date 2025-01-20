@@ -1,5 +1,41 @@
 #include "System.hpp"
 
+void System::specifyDefaultServer() {
+    std::vector<int> unique_tag;
+    
+    // 고유한 포트 번호만 저장
+    for (std::list<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
+        if (std::find(unique_tag.begin(), unique_tag.end(), it->getPort()) == unique_tag.end())
+            unique_tag.push_back(it->getPort());
+
+    // 각 고유 포트별로 default server 검증 및 설정
+    for (size_t i = 0; i < unique_tag.size(); i++) {
+        int default_count = 0;
+        bool has_server = false;
+        std::list<Server>::iterator first_server = servers.end();
+
+        for (std::list<Server>::iterator it = servers.begin(); it != servers.end(); ++it) {
+            if (it->getPort() == unique_tag[i]) {
+                if (!has_server) {
+                    first_server = it;
+                    has_server = true;
+                }
+                if (it->getDefaultServer()) {
+                    default_count++;
+                }
+            }
+        }
+
+        // 같은 포트에 default server가 2개 이상이면 에러
+        if (default_count > 1)
+            throw std::runtime_error("Multiple default servers specified for port");
+        
+        // default server가 없으면 첫 번째 서버를 default로 설정
+        if (default_count == 0)
+            first_server->setDefaultServer();
+    }
+}
+
 void System::parseConfigFile(const std::string& configFile)
 {
     std::ifstream file(configFile.c_str()); // 파일 스트림
@@ -15,6 +51,7 @@ void System::parseConfigFile(const std::string& configFile)
     }
     splitServerBlock(lineBlock);
     file.close();
+    specifyDefaultServer();
 }
 
 void System::splitServerBlock(std::string& lineBlock) {
