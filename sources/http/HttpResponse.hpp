@@ -1,14 +1,27 @@
 #ifndef HTTPRESPONSE_HPP
 #define HTTPRESPONSE_HPP
 
-#include <utils.hpp>
-#include "HttpHeader.hpp"
+#include "HttpRequest.hpp"
+
+enum HttpStatusCode
+{
+    OK = 200,
+    BAD_REQUEST = 400,
+    NOT_FOUND = 404,
+    METHOD_NOT_ALLOWED = 405,
+    REQUEST_TIMEOUT = 408,
+    PAYLOAD_TOO_LARGE = 413,
+    URI_TOO_LONG = 414,
+    INTERNAL_SERVER_ERROR = 500,
+    NOT_IMPLEMENTED = 501,
+    BAD_GATEWAY = 502,
+    SERVICE_UNAVAILABLE = 503,
+    GATEWAY_TIMEOUT = 504
+};
 
 class HttpResponse
 {
     private:
-        HttpResponse(const HttpResponse &src);
-        HttpResponse &operator=(const HttpResponse &src);
 
         HttpHeader headers;
         std::string version;
@@ -18,10 +31,14 @@ class HttpResponse
         
     public:
         HttpResponse();
+        HttpResponse(const HttpResponse &ref);
+        HttpResponse &operator=(const HttpResponse &ref);
         ~HttpResponse();
 
-        void setResponse(const std::string &version, int status_code, const std::string &status_message, const std::string &body);
-        
+        void setVersion(const std::string &version);
+        void setStatusCode(int status_code);
+        void setStatusMessage(const std::string &status_message);
+        void setBody(const std::string &body);
 };
 
 #endif

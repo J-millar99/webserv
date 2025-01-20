@@ -6,8 +6,7 @@
 class HttpRequest
 {
     private:
-        HttpRequest(const HttpRequest &src);
-        HttpRequest &operator=(const HttpRequest &src);
+        std::string raw_request;
 
         HttpHeader headers;
         std::string method;
@@ -17,15 +16,19 @@ class HttpRequest
 
     public:
         HttpRequest();
+        HttpRequest(const HttpRequest &ref);
+        HttpRequest &operator=(const HttpRequest &ref);
         ~HttpRequest();
 
-        bool parseHttpRequest(const std::string &raw_request);
+        bool parseHttpRequest();
 
+        void addRawRequest(const std::string &buffer);
         const HttpHeader &getHeaders() const;
         const std::string &getMethod() const;
         const std::string &getUri() const;
         const std::string &getVersion() const;
         const std::string &getBody() const;
+        void printInfo() const;
 };
 
 #endif

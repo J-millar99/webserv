@@ -1,10 +1,17 @@
 #include "HttpHeader.hpp"
 
 
-HttpHeader::HttpHeader(const HttpHeader &ref) { (void)ref; } /* Unused */
-HttpHeader &HttpHeader::operator=(const HttpHeader &ref) { (void)ref; return *this; } /* Unused */
 HttpHeader::~HttpHeader() { }
 HttpHeader::HttpHeader() { }
+HttpHeader::HttpHeader(const HttpHeader &ref) {
+    headers = ref.headers;
+}
+
+HttpHeader &HttpHeader::operator=(const HttpHeader &ref) {
+    if (this != &ref)
+        headers = ref.headers;
+    return *this;
+}
 
 void HttpHeader::addHeader(const std::string &key, const std::string &value)
 {
@@ -37,4 +44,11 @@ std::vector<std::string> split(const std::string &str, const std::string &delimi
     }
     
     return tokens;
+}
+
+void HttpHeader::printInfo() const
+{
+    std::map<std::string, std::string>::const_iterator it;
+    for (it = headers.begin(); it != headers.end(); it++)
+        std::cout << it->first << ": " << it->second << std::endl;
 }
