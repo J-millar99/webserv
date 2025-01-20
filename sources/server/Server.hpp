@@ -2,7 +2,8 @@
 #define SERVER_HPP
 
 #include "../utils.hpp"
-#include "../http/HttpHeader.hpp"
+#include "../http/HttpRequest.hpp"
+#include "../http/HttpResponse.hpp"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/event.h>
@@ -10,6 +11,7 @@
 #include <fcntl.h>
 
 #define BUFFER_SIZE 1024
+#define MAX_HEADER_SIZE (4 * 1024)
 #define MAX_CLIENTS 10
 
 enum Method
@@ -32,15 +34,13 @@ struct Location
 class Server
 {
     private:
-        Server &operator=(const Server &ref);
-        Server(const Server &ref);
-
         // 포트, 바디사이즈, route(location)은 반드시 존재해야함.
         int port;
         std::list<std::string> server_names;
         std::list<std::string> error_pages;
         int limit_client_body_size;
         std::list<Location> locations;
+        bool default_server;
 
         // 서버 소켓 필드
         int server_socket;
@@ -49,13 +49,19 @@ class Server
 
     public:
         Server();
+        Server &operator=(const Server &ref);
+        Server(const Server &ref);
         ~Server();
 
         // ServerUtils
         void checkField();
-        int getServerSocket() const;
         bool isServerSocket(int socket_fd) const;
         void printInfo();
+
+        int getServerSocket() const;
+        bool getDefaultServer() const;
+        int getPort() const;
+        void setDefaultServer();
 
         // ServerParser
         void parseServerBlock(std::string &serverBlock);
@@ -66,6 +72,16 @@ class Server
         // Server
         void settingServer();
         void handleClient(int client_socket);
+
+        // Receive
+        HttpRequest recvHttpRequest(int clinet_socket);
+        int isValidRequest(const HttpRequest &request);
+        int isValidRequestLine(const HttpRequest &request);
+        int isValidRequestBody(const HttpRequest &request);
+
+        // Response
+        HttpResponse createHttpResponse(const HttpRequest &request);
+
 };
 
 #endif

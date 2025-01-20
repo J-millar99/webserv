@@ -15,10 +15,22 @@ void Server::checkField() {
     }
 }
 
+int Server::getPort() const {
+    return port;
+}
+
 int Server::getServerSocket() const {
     return this->server_socket;
 }
 
 bool Server::isServerSocket(int socket_fd) const {
     return socket_fd == server_socket; 
+}
+
+bool Server::getDefaultServer() const{
+    return default_server;
+}
+
+void Server::setDefaultServer() {
+    default_server = true;
 }

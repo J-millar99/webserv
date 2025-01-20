@@ -51,12 +51,17 @@ bool Server::settingServerBlock(std::vector<std::string>& strs, size_t size) {
     if (strs[0] == "listen") {
         if (strs[size - 1].back() != ';')
             throw std::runtime_error("Missing semicolon in 'listen' directive");
-        if (size != 2)
+        if (size < 2)
             throw std::runtime_error("Listen must have only one number");
-        strs[1].erase(strs[1].size() - 1);
+        if (size == 3)
+            if (strs[2] != "default_server")
+                throw std::runtime_error("Unknown directive in listen field");
+            else
+                default_server = true;
+        strs[size - 1].erase(strs[size - 1].size() - 1);
         port = stringToInt(strs[1]);
         if (!port)
-            throw std::runtime_error("Port number can not be '0'");
+            throw std::runtime_error("Port number must be greater than 0");
     } else if (strs[0] == "server_name") {
         if (strs[size - 1].back() != ';')
             throw std::runtime_error("Missing semicolon in 'server_name' directive");

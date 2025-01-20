@@ -1,17 +1,49 @@
 #include "Server.hpp"
 
-Server &Server::operator=(const Server &ref) { (void)ref; return *this; } /* Unused */
 Server::~Server() { } /* Unused */
-Server::Server(const Server &ref) { (void)ref; } /* Unused */
+Server &Server::operator=(const Server &ref) {
+    if (this != &ref) {
+        port = ref.port;
+        default_server = ref.default_server;
+        server_names = ref.server_names;
+        error_pages = ref.error_pages;
+        limit_client_body_size = ref.limit_client_body_size;
+        locations = ref.locations;
+
+        server_socket = ref.server_socket;
+        server_addr = ref.server_addr;
+        memcpy(buffer, ref.buffer, BUFFER_SIZE);
+    }
+    return *this;
+}
+
+Server::Server(const Server &ref) {
+    port = ref.port;
+    default_server = ref.default_server;
+    server_names = ref.server_names;
+    error_pages = ref.error_pages;
+    limit_client_body_size = ref.limit_client_body_size;
+    locations = ref.locations;
+    
+    server_socket = ref.server_socket;
+    server_addr = ref.server_addr;
+    memcpy(buffer, ref.buffer, BUFFER_SIZE);
+}
+
 Server::Server() {
     port = 0;
     limit_client_body_size = -1;
+    default_server = false;
 }
 
 void Server::settingServer() {
     // 논블로킹 소켓 서버 설정
     if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
         throw std::runtime_error("socket error");
+    // SO_REUSEADDR 옵션 설정
+    int opt = 1;
+    if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+        throw std::runtime_error("setsockopt error");
     if (fcntl(server_socket, F_SETFL, O_NONBLOCK) == -1)
         throw std::runtime_error("fcntl F_SETFL error");
 
@@ -31,46 +63,21 @@ void Server::settingServer() {
 }
 
 void Server::handleClient(int client_socket) {
-    char buffer[BUFFER_SIZE];
-    memset(buffer, 0, BUFFER_SIZE);
-
-    ssize_t n = recv(client_socket, buffer, sizeof(buffer), 0);
-    if (n <= 0) {
-        close(client_socket);
-        return;
-    }
-
-    // HTTP 응답 헤더 생성
-    std::string response = "HTTP/1.1 200 OK\r\n";
-    response += "Content-Type: text/html; charset=UTF-8\r\n";
-    response += "Connection: close\r\n";
+    HttpRequest request = recvHttpRequest(client_socket);
+    HttpResponse response = createHttpResponse(request);
     
-    // 응답 본문 생성
-    std::string body = "<html>\r\n";
-    body += "<head><title>WebServ Test</title></head>\r\n";
-    body += "<body>\r\n";
-    body += "<h1>Welcome to WebServ!</h1>\r\n";
-    body += "<p>Server is running on port " + std::to_string(port) + "</p>\r\n";
-    body += "</body>\r\n";
-    body += "</html>\r\n";
-
-    // Content-Length 헤더 추가
-    response += "Content-Length: " + std::to_string(body.length()) + "\r\n";
-    response += "\r\n"; // 헤더와 본문 구분을 위한 빈 줄
-    response += body;
-
     // 응답 전송
-    ssize_t total_sent = 0;
-    ssize_t length = response.length();
+    // ssize_t total_sent = 0;
+    // ssize_t length = response.length();
     
-    while (total_sent < length) {
-        ssize_t sent = write(client_socket, response.c_str() + total_sent, length - total_sent);
-        if (sent < 0) {
-            close(client_socket);
-            return;
-        }
-        total_sent += sent;
-    }
+    // while (total_sent < length) {
+    //     ssize_t sent = write(client_socket, response.c_str() + total_sent, length - total_sent);
+    //     if (sent < 0) {
+    //         close(client_socket);
+    //         return;
+    //     }
+    //     total_sent += sent;
+    // }
 
-    close(client_socket);
+    // close(client_socket);
 }
