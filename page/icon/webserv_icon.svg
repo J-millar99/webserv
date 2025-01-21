@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <!-- Background -->
+    <rect width="200" height="200" rx="20" fill="#2c3e50"/>
+    
+    <!-- Network Grid Background -->
+    <path d="M20 100 L180 100" stroke="#34495e" stroke-width="1"/>
+    <path d="M100 20 L100 180" stroke="#34495e" stroke-width="1"/>
+    
+    <!-- Network Circles -->
+    <circle cx="100" cy="100" r="60" fill="none" stroke="#3498db" stroke-width="2" stroke-dasharray="4 2"/>
+    
+    <!-- Connection Nodes -->
+    <circle cx="100" cy="65" r="8" fill="#e74c3c"/>
+    <circle cx="130" cy="120" r="8" fill="#2ecc71"/>
+    <circle cx="70" cy="120" r="8" fill="#9b59b6"/>
+    
+    <!-- Central Server Node -->
+    <circle cx="100" cy="100" r="15" fill="#3498db"/>
+    
+    <!-- Connection Lines -->
+    <line x1="100" y1="85" x2="100" y2="65" stroke="#e74c3c" stroke-width="2"/>
+    <line x1="115" y1="110" x2="130" y2="120" stroke="#2ecc71" stroke-width="2"/>
+    <line x1="85" y1="110" x2="70" y2="120" stroke="#9b59b6" stroke-width="2"/>
+    
+    <!-- Data Transfer Animation -->
+    <circle cx="100" cy="100" r="25" fill="none" stroke="#ecf0f1" stroke-width="2" opacity="0.5">
+        <animate attributeName="r" values="25;35;25" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.5;0.2;0.5" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- HTTP Methods -->
+    <text x="90" y="55" font-family="Consolas, monospace" font-size="10" fill="#e74c3c">GET</text>
+    <text x="135" y="135" font-family="Consolas, monospace" font-size="10" fill="#2ecc71">POST</text>
+    <text x="45" y="135" font-family="Consolas, monospace" font-size="10" fill="#9b59b6">DELETE</text>
+    
+    <!-- WebServ Text -->
+    <text x="100" y="175" 
+          font-family="Arial, sans-serif" 
+          font-weight="bold"
+          font-size="16"
+          fill="#ffffff"
+          text-anchor="middle">
+        WEBSERV
+    </text>
+</svg>

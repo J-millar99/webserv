@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <!-- Background -->
+    <rect width="200" height="200" rx="20" fill="#000000"/>
+    
+    <!-- "42" Text using a cleaner font approach -->
+    <text x="100" y="120" 
+          font-family="Consolas, monospace" 
+          font-weight="bold"
+          font-size="90"
+          fill="#ffffff"
+          text-anchor="middle"
+          letter-spacing="-2">
+        42
+    </text>
+    
+    <!-- "SEOUL" Text -->
+    <text x="100" y="160" 
+          font-family="Arial, sans-serif" 
+          font-weight="bold"
+          font-size="24"
+          fill="#ffffff"
+          text-anchor="middle">
+        SEOUL
+    </text>
+    
+    <!-- Decorative Elements -->
+    <rect x="40" y="30" width="120" height="4" fill="#ffffff"/>
+</svg>
