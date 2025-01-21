@@ -53,11 +53,12 @@ bool Server::settingServerBlock(std::vector<std::string>& strs, size_t size) {
             throw std::runtime_error("Missing semicolon in 'listen' directive");
         if (size < 2)
             throw std::runtime_error("Listen must have only one number");
-        if (size == 3)
+        if (size == 3) {
             if (strs[2] != "default_server")
                 throw std::runtime_error("Unknown directive in listen field");
             else
                 default_server = true;
+        }
         strs[size - 1].erase(strs[size - 1].size() - 1);
         port = stringToInt(strs[1]);
         if (!port)
@@ -98,6 +99,7 @@ void Server::parseLocationBlock(std::string &locationBlock) {
     std::vector<std::string> locationString = splitString(LocationDirective);
     locationBlock = locationBlock.substr(start + 1, locationBlock.size() - start);
     Location loc;
+    loc.methods = 0;
 
     if (locationString.size() != 2)
         throw std::runtime_error("Location field is not validate");

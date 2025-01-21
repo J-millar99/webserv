@@ -26,6 +26,14 @@ std::string HttpHeader::getHeader(const std::string &key) const
     return it->second;
 }
 
+std::string HttpHeader::getHeaders() {
+    std::string headers_str = "";
+    std::map<std::string, std::string>::iterator it;
+    for (it = headers.begin(); it != headers.end(); it++)
+        headers_str += it->first + ": " + it->second + "\r\n";
+    return headers_str;
+}
+
 std::vector<std::string> split(const std::string &str, const std::string &delimiter) {
     std::vector<std::string> tokens;
     size_t start = 0;

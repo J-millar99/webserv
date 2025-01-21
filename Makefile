@@ -9,9 +9,11 @@ SRCS = sources/main.cpp sources/utils.cpp \
 		sources/server/Server.cpp \
 		sources/server/ServerParser.cpp \
 		sources/server/ServerUtils.cpp \
+		sources/server/Receive.cpp \
+		sources/server/Response.cpp \
 		sources/http/HttpHeader.cpp \
 		sources/http/HttpRequest.cpp \
-		# sources/http/HttpResponse.cpp \
+		sources/http/HttpResponse.cpp \
 		
 		
 OBJS = $(SRCS:.cpp=.o)

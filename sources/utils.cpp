@@ -49,3 +49,17 @@ int stringToInt(std::string& str) {
         return -1;  // int값을 넘었거나 문자열의 끝에 도달하지 못했다면
     return static_cast<int>(result);
 }
+
+bool isDirectory(const std::string& path) {
+    struct stat statbuf;
+    if (stat(path.c_str(), &statbuf) != 0)
+        return false;
+    return S_ISDIR(statbuf.st_mode);
+}
+
+bool isRegularFile(const std::string& path) {
+    struct stat statbuf;
+    if (stat(path.c_str(), &statbuf) != 0)
+        return false;
+    return S_ISREG(statbuf.st_mode);
+}

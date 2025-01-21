@@ -15,6 +15,7 @@ class HttpHeader
         ~HttpHeader();
         void addHeader(const std::string &key, const std::string &value);
         std::string getHeader(const std::string &key) const;
+        std::string getHeaders();
         void printInfo() const;
 };
 

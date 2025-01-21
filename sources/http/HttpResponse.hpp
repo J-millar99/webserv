@@ -3,8 +3,7 @@
 
 #include "HttpRequest.hpp"
 
-enum HttpStatusCode
-{
+enum HttpStatusCode {
     OK = 200,
     BAD_REQUEST = 400,
     NOT_FOUND = 404,
@@ -19,26 +18,29 @@ enum HttpStatusCode
     GATEWAY_TIMEOUT = 504
 };
 
-class HttpResponse
-{
+class HttpResponse {
     private:
-
-        HttpHeader headers;
         std::string version;
         int status_code;
         std::string status_message;
-        std::string body;
+
+        std::string response_line;
+        HttpHeader headers;
+        std::string response_body;
         
+        std::string response_message;
+
     public:
         HttpResponse();
         HttpResponse(const HttpResponse &ref);
         HttpResponse &operator=(const HttpResponse &ref);
         ~HttpResponse();
 
-        void setVersion(const std::string &version);
-        void setStatusCode(int status_code);
-        void setStatusMessage(const std::string &status_message);
-        void setBody(const std::string &body);
+        std::string setStatusMessage(int code) const;
+        void createErrorPage(int status_code);
+        void createPage();
+        int length() const;
+        std::string message() const;
 };
 
 #endif

@@ -23,6 +23,7 @@ HttpRequest &HttpRequest::operator=(const HttpRequest &ref) {
     }
     return *this;
 }
+
 void HttpRequest::addRawRequest(const std::string &buffer) {
     raw_request += buffer;
 }
@@ -48,7 +49,7 @@ bool HttpRequest::parseHttpRequest() {
         return false;
 
     method = first_line[0];
-    uri = first_line[1];
+    uri += first_line[1];
     version = first_line[2];
 
     // 헤더 파싱
@@ -69,7 +70,6 @@ bool HttpRequest::parseHttpRequest() {
 
     // 바디 파싱
     body = raw_request.substr(header_end + 4); // \r\n\r\n 이후가 바디
-
     return true;
 }
 
@@ -100,10 +100,7 @@ const std::string &HttpRequest::getBody() const
 
 void HttpRequest::printInfo() const
 {
-    std::cout << "Method: " << method << std::endl;
-    std::cout << "Uri: " << uri << std::endl;
-    std::cout << "Version: " << version << std::endl;
-    std::cout << "Headers";
+    std::cout << getMethod() << " " << getUri() << " " << getVersion() << std::endl;
     headers.printInfo();
     std::cout << "Body: " << body << std::endl;
 }

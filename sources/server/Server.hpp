@@ -11,7 +11,7 @@
 #include <fcntl.h>
 
 #define BUFFER_SIZE 1024
-#define MAX_HEADER_SIZE (4 * 1024)
+#define MAX_REQUEST_LINE_SIZE (4 * 1024)
 #define MAX_CLIENTS 10
 
 enum Method
@@ -78,6 +78,7 @@ class Server
         int isValidRequest(const HttpRequest &request);
         int isValidRequestLine(const HttpRequest &request);
         int isValidRequestBody(const HttpRequest &request);
+        int isValidRequestHeader(const HttpRequest &request);
 
         // Response
         HttpResponse createHttpResponse(const HttpRequest &request);
