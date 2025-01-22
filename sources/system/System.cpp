@@ -8,7 +8,7 @@ System::~System() { g_system = nullptr; }
 System* g_system = nullptr;
 
 void System::printPort() {
-    std::cout << "Server is running ont port ";
+    std::cout << "Webserver Running..." << std::endl << std::endl;
     for (std::list<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
         it->printInfo();
     std::cout << std::endl; 
