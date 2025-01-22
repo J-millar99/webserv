@@ -21,6 +21,12 @@ enum Method
     DELETE = 1 << 2
 };
 
+struct redirect
+{
+    std::string url;
+    int status_code;
+};
+
 struct Location
 {
     // 5개는 반드시 존재해야 함
@@ -29,6 +35,7 @@ struct Location
     std::string index;
     int methods;
     bool auto_index;
+    struct redirect redirect;
 };
 
 class Server
@@ -66,9 +73,18 @@ class Server
         // ServerParser
         void parseServerBlock(std::string &serverBlock);
         bool settingServerBlock(std::vector<std::string>& strs, size_t size);
+        bool allocatePort(std::vector<std::string>& strs, size_t size);
+        bool allocateServerNames(std::vector<std::string>& strs, size_t size);
+        bool allocateErrorPages(std::vector<std::string>& strs, size_t size);
+        bool allocateLimitClientBodySize(std::vector<std::string>& strs, size_t size);
+
         void parseLocationBlock(std::string &locationBlock);
         bool settingLocationBlock(std::vector<std::string>& strs, size_t size, Location &loc);
-
+        bool allocateRoot(std::vector<std::string>& strs, size_t size, Location &loc);
+        bool allocateIndex(std::vector<std::string>& strs, size_t size, Location &loc);
+        bool allocateMethods(std::vector<std::string>& strs, size_t size, Location &loc);
+        bool allocateAutoIndex(std::vector<std::string>& strs, size_t size, Location &loc);
+        bool allocateRedirect(std::vector<std::string>& strs, size_t size, Location &loc);
         // Server
         void settingServer();
         void handleClient(int client_socket);
@@ -82,7 +98,6 @@ class Server
 
         // Response
         HttpResponse createHttpResponse(const HttpRequest &request);
-
 };
 
 #endif

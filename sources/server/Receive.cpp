@@ -67,6 +67,10 @@ int Server::isValidRequestLine(const HttpRequest &request) {
         return METHOD_NOT_ALLOWED; // 405
     // URI 검증
     std::string request_uri = request.getUri();
+    // if (isDirectory(request_uri))
+    //     request_uri += "/"; // 디렉토리일 경우 / 추가
+    // if (isRegularFile(request_uri))
+        
     for (std::list<Location>::iterator it = locations.begin(); it != locations.end(); it++) {
         // uri가 일치하면 메소드 검증
         std::cerr << "요청 uri: " <<request_uri << " ";

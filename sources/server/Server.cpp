@@ -60,7 +60,8 @@ void Server::settingServer() {
     // 리스닝 시작
     if (listen(server_socket, MAX_CLIENTS) == -1)
         throw std::runtime_error("listen error");
-} 
+}
+
 void Server::handleClient(int client_socket) {
     HttpRequest request = recvHttpRequest(client_socket);
     HttpResponse response = createHttpResponse(request);

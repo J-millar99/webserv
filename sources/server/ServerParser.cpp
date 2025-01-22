@@ -47,128 +47,76 @@ void Server::parseServerBlock(std::string &serverBlock) {
     checkField();
 }
 
-bool Server::settingServerBlock(std::vector<std::string>& strs, size_t size) {
-    if (strs[0] == "listen") {
-        if (strs[size - 1].back() != ';')
-            throw std::runtime_error("Missing semicolon in 'listen' directive");
-        if (size < 2)
-            throw std::runtime_error("Listen must have only one number");
-        if (size == 3) {
-            if (strs[2] != "default_server")
-                throw std::runtime_error("Unknown directive in listen field");
-            else
-                default_server = true;
-        }
-        strs[size - 1].erase(strs[size - 1].size() - 1);
-        port = stringToInt(strs[1]);
-        if (!port)
-            throw std::runtime_error("Port number must be greater than 0");
-    } else if (strs[0] == "server_name") {
-        if (strs[size - 1].back() != ';')
-            throw std::runtime_error("Missing semicolon in 'server_name' directive");
-        if (size < 2)
-            throw std::runtime_error("server_name field is empty");
-        strs[size - 1].erase(strs[size - 1].size() - 1);
-        for (size_t i = 1; i < size; ++i)
-            server_names.push_back(strs[i]);
-    } else if (strs[0] == "error_page") {
-        if (strs[size - 1].back() != ';')
-            throw std::runtime_error("Missing semicolon in 'error_page' directive");
-        if (size < 2)
-            throw std::runtime_error("error_page field is empty");
-        strs[size - 1].erase(strs[size - 1].size() - 1);
-        for (size_t i = 1; i < size; ++i)
-            error_pages.push_back(strs[i]);
-    } else if (strs[0] == "limit_client_body_size") {
-        if (strs[size - 1].back() != ';')
-            throw std::runtime_error("Missing semicolon in 'limit_client_body_size' directive");
-        if (size != 2)
-            throw std::runtime_error("limit_client_body_size must have only one number");
-        strs[1].erase(strs[1].size() - 1);
-        limit_client_body_size = stringToInt(strs[1]);
-    } else
-        return false;
+bool Server::allocatePort(std::vector<std::string>& strs, size_t size) {
+    if (strs[size - 1].back() != ';')
+        throw std::runtime_error("Missing semicolon in 'listen' directive");
+    if (size < 2)
+        throw std::runtime_error("Listen must have only one number");
+    if (size == 3)
+    {
+        if (strs[2] != "default_server")
+            throw std::runtime_error("Unknown directive in listen field");
+        else
+            default_server = true;
+    }
+    strs[size - 1].erase(strs[size - 1].size() - 1);
+    port = stringToInt(strs[1]);
+    if (!port)
+        throw std::runtime_error("Port number must be greater than 0");
     return true;
 }
 
-void Server::parseLocationBlock(std::string &locationBlock) {
-    std::string::size_type idx = 0;
-    std::string::size_type start = locationBlock.find_first_of('{');
-    std::string LocationDirective = locationBlock.substr(0, start);
-    trim(LocationDirective);
-    std::vector<std::string> locationString = splitString(LocationDirective);
-    locationBlock = locationBlock.substr(start + 1, locationBlock.size() - start);
-    Location loc;
-    loc.methods = 0;
-
-    if (locationString.size() != 2)
-        throw std::runtime_error("Location field is not validate");
-    if (locationString[0] != "location")
-        throw std::runtime_error("Missing 'Location' directive");
-    if (locationString[1] != "=" && locationString[1][0] != '/')
-        throw std::runtime_error("Location url_type is not validate");
-
-    loc.url_type = locationString[1];
-
-    while (true) {
-        char cursor = locationBlock[idx];
-        if (!cursor || cursor == '}')    break;
-
-        if (cursor == ';') {
-            std::string directive = locationBlock.substr(0, idx + 1); // 세미콜론 포함
-            std::vector<std::string> strs = splitString(directive);
-            if (!settingLocationBlock(strs, strs.size(), loc))
-                throw std::runtime_error("Unknown directive in location field");  
-            locationBlock = locationBlock.substr(idx + 1, locationBlock.size() - idx);
-            idx = -1;
-        }
-        ++idx;
-    }
-    locations.push_back(loc);
+bool Server::allocateServerNames(std::vector<std::string>& strs, size_t size) {
+    if (strs[size - 1].back() != ';')
+        throw std::runtime_error("Missing semicolon in 'server_name' directive");
+    if (size < 2)
+        throw std::runtime_error("server_name field is empty");
+    strs[size - 1].erase(strs[size - 1].size() - 1);
+    for (size_t i = 1; i < size; ++i)
+        server_names.push_back(strs[i]);
+    return true;
 }
 
-bool Server::settingLocationBlock(std::vector<std::string>& strs, size_t size, Location &loc) {
-    if (strs[0] == "root") {
-        if (size != 2)
-            throw std::runtime_error("root field is only one parameter");
-        if (strs[size - 1].back() != ';')
-            throw std::runtime_error("Missing semicolon in 'root' directive");
-        strs[1].erase(strs[1].size() - 1);
-        loc.root = strs[1];
-    } else if (strs[0] == "index") {
-        if (size != 2)
-            throw std::runtime_error("index field is only one parameter");
-        if (strs[size - 1].back() != ';')
-            throw std::runtime_error("Missing semicolon in 'index' directive");
-        strs[1].erase(strs[1].size() - 1);
-        loc.index = strs[1];
-    } else if (strs[0] == "methods") {
-        if (size > 4)
-            throw std::runtime_error("methods field has more than 4 parameters");
-        if (strs[size - 1].back() != ';')
-            throw std::runtime_error("Missing semicolon in 'methods' directive");
-        strs[size - 1].erase(strs[size - 1].size() - 1);
-        for (size_t i = 1; i < size; ++i) {
-            if (strs[i] == "GET")
-                loc.methods |= 1 << 0;
-            else if (strs[i] == "POST")
-                loc.methods |= 1 << 1;
-            else if (strs[i] == "DELETE")
-                loc.methods |= 1 << 2;
-            else
-                throw std::runtime_error("Disallow function in methods field");
-        }
-    } else if (strs[0] == "autoindex") {
-        if (strs[size - 1].back() != ';')
-            throw std::runtime_error("Missing semicolon in 'auto_index' directive");
-        if (size != 2)
-            throw std::runtime_error("auto_index must have only one number");
-        strs[1].erase(strs[1].size() - 1);
-        if (strs[1] == "on")
-            loc.auto_index = true;
-        else
-            loc.auto_index = false;
-    } else
+bool Server::allocateErrorPages(std::vector<std::string>& strs, size_t size) {
+    if (strs[size - 1].back() != ';')
+        throw std::runtime_error("Missing semicolon in 'error_page' directive");
+    if (size < 2)
+        throw std::runtime_error("error_page field is empty");
+    strs[size - 1].erase(strs[size - 1].size() - 1);
+    for (size_t i = 1; i < size; ++i)
+        error_pages.push_back(strs[i]);
+    return true;
+}
+
+bool Server::allocateLimitClientBodySize(std::vector<std::string>& strs, size_t size) {
+    if (strs[size - 1].back() != ';')
+        throw std::runtime_error("Missing semicolon in 'limit_client_body_size' directive");
+    if (size != 2)
+        throw std::runtime_error("limit_client_body_size must have only one number");
+    strs[1].erase(strs[1].size() - 1);
+    limit_client_body_size = stringToInt(strs[1]);
+    if (limit_client_body_size < 0)
+        throw std::runtime_error("limit_client_body_size must be greater than 0");
+    return true;
+}
+
+
+bool Server::settingServerBlock(std::vector<std::string>& strs, size_t size) {
+    // 같은 필드가 여러번 나오는 경우 무시
+    static bool listen = false;
+    static bool server_name = false;
+    static bool error_page = false;
+    static bool limit_client_body_size = false;
+
+    if (!listen && strs[0] == "listen")
+        listen = allocatePort(strs, size);
+    else if (strs[0] == "server_name")
+        server_name = allocateServerNames(strs, size);
+    else if (strs[0] == "error_page")
+        error_page = allocateErrorPages(strs, size);
+    else if (strs[0] == "limit_client_body_size")
+        limit_client_body_size = allocateLimitClientBodySize(strs, size);
+    else
         return false;
     return true;
 }
