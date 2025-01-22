@@ -32,7 +32,7 @@ struct Location
     // 5개는 반드시 존재해야 함
     std::string url_type;
     std::string root;
-    std::string index;
+    std::list<std::string> index;
     int methods;
     bool auto_index;
     struct redirect redirect;
@@ -42,9 +42,11 @@ class Server
 {
     private:
         // 포트, 바디사이즈, route(location)은 반드시 존재해야함.
+        bool listen_flag;
+        bool return_flag;
         int port;
         std::list<std::string> server_names;
-        std::list<std::string> error_pages;
+        std::map<std::string, std::vector<int> > error_pages;
         int limit_client_body_size;
         std::list<Location> locations;
         bool default_server;
@@ -78,6 +80,7 @@ class Server
         bool allocateErrorPages(std::vector<std::string>& strs, size_t size);
         bool allocateLimitClientBodySize(std::vector<std::string>& strs, size_t size);
 
+        // LocationParser
         void parseLocationBlock(std::string &locationBlock);
         bool settingLocationBlock(std::vector<std::string>& strs, size_t size, Location &loc);
         bool allocateRoot(std::vector<std::string>& strs, size_t size, Location &loc);
@@ -85,6 +88,7 @@ class Server
         bool allocateMethods(std::vector<std::string>& strs, size_t size, Location &loc);
         bool allocateAutoIndex(std::vector<std::string>& strs, size_t size, Location &loc);
         bool allocateRedirect(std::vector<std::string>& strs, size_t size, Location &loc);
+
         // Server
         void settingServer();
         void handleClient(int client_socket);

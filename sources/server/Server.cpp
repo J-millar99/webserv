@@ -3,6 +3,8 @@
 Server::~Server() { } /* Unused */
 Server &Server::operator=(const Server &ref) {
     if (this != &ref) {
+        listen_flag = ref.listen_flag;
+        return_flag = ref.return_flag;
         port = ref.port;
         default_server = ref.default_server;
         server_names = ref.server_names;
@@ -16,8 +18,9 @@ Server &Server::operator=(const Server &ref) {
     }
     return *this;
 }
-
 Server::Server(const Server &ref) {
+    listen_flag = ref.listen_flag;
+    return_flag = ref.return_flag;
     port = ref.port;
     default_server = ref.default_server;
     server_names = ref.server_names;
@@ -29,7 +32,6 @@ Server::Server(const Server &ref) {
     server_addr = ref.server_addr;
     memcpy(buffer, ref.buffer, BUFFER_SIZE);
 }
-
 Server::Server() {
     port = 0;
     limit_client_body_size = -1;
