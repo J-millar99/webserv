@@ -1,6 +1,6 @@
 NAME = webserv
 CPP = c++
-# CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 
 SRCS = sources/main.cpp sources/utils.cpp \
 		sources/system/System.cpp \

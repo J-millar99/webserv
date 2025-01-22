@@ -1,3 +1,9 @@
 1. parser 아직 미완료
     -> 중괄호 탐지가 완벽하지 않음
     -> 세미콜론 감지가 완벽하지 않음
+
+2. location redirect
+    redirect의 url을 가진 location을 찾아 값을 복사해야 함
+
+3. location block
+    pattern이 prefix인지 exact인지 확인하는 변수 추가해야함
