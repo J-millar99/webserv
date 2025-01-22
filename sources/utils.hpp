@@ -20,5 +20,6 @@ std::vector<std::string> splitString(std::string& input);
 int stringToInt(std::string& str);
 bool isDirectory(const std::string& path);
 bool isRegularFile(const std::string& path);
+bool checkPathFormat(const std::string& path);
 
 #endif

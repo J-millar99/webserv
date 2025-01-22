@@ -63,3 +63,10 @@ bool isRegularFile(const std::string& path) {
         return false;
     return S_ISREG(statbuf.st_mode);
 }
+
+bool checkPathFormat(const std::string& path) {
+    // path가 비어있거나 '/'로 시작하지 않거나 path의 마지막 5글자가 .html가 아니라면 false
+    if (path.empty() || path[0] != '/' || path.size() < 6 || path.substr(path.size() - 5) != ".html")
+        return false;
+    return true;
+}
