@@ -22,8 +22,8 @@ void Server::parseLocationBlock(std::string &locationBlock) {
     } else
         throw std::runtime_error("Location url_type is not validate");
 
-
-    loc.url_type = locationString.back();
+    loc.url_type = locationString.size() == 2 ? PREFIX : EXACT;
+    loc.url = locationString.back();
 
     while (true) {
         char cursor = locationBlock[idx];
