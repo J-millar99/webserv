@@ -4,6 +4,12 @@
 
 2. location redirect
     redirect의 url을 가진 location을 찾아 값을 복사해야 함
+    response를 생성할 때 location을 찾아서 값을 복사해야 함
+    없으면 404를 반환해야 함
 
-3. location block
-    pattern이 prefix인지 exact인지 확인하는 변수 추가해야함
+3. Host헤더와 server_name이 일치하지 않으면
+    -> default_server를 찾아야 함
+    -> default_server가 없으면
+        404를 반환해야 함
+
+4. default_server에 대한 처리가 명확할 필요가 있음
