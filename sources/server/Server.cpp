@@ -63,24 +63,3 @@ void Server::settingServer() {
     if (listen(server_socket, MAX_CLIENTS) == -1)
         throw std::runtime_error("listen error");
 }
-
-void Server::handleClient(int client_socket) {
-    HttpRequest request = recvHttpRequest(client_socket);
-    HttpResponse response = createHttpResponse(request);
-    request.printInfo();
-    
-    // 응답 전송
-    ssize_t total_sent = 0;
-    ssize_t length = response.length();
-    
-    while (total_sent < length) {
-        ssize_t sent = send(client_socket, response.message().c_str() + total_sent, length - total_sent, 0);
-        if (sent < 0) {
-            close(client_socket);
-            // 서버에 문제가 생겼을 때 500번대 페이지 만들어 전송
-            return ;
-        }
-        total_sent += sent;
-    }
-    close(client_socket);
-}
