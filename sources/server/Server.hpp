@@ -14,6 +14,12 @@
 #define MAX_REQUEST_LINE_SIZE (4 * 1024)
 #define MAX_CLIENTS 10
 
+enum Pattern
+{
+    PREFIX = 1,
+    EXACT = 2
+};
+
 enum Method
 {
     GET = 1 << 0,
@@ -30,7 +36,8 @@ struct redirect
 struct Location
 {
     // 5개는 반드시 존재해야 함
-    std::string url_type;
+    int url_type;
+    std::string url;
     std::string root;
     std::list<std::string> index;
     int methods;
