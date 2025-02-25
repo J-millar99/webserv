@@ -55,7 +55,7 @@ HttpResponse Server::createHttpResponse(const HttpRequest &request) {
     if (status_code != OK)
         response.createErrorPage(status_code);
     else
-        response.createPage();
+        response.createPage(request);
 
     return response;
 }
@@ -64,7 +64,6 @@ HttpResponse Server::createHttpResponse(const HttpRequest &request) {
 void Server::handleClient(int client_socket) {
     HttpRequest request = recvHttpRequest(client_socket);
     HttpResponse response = createHttpResponse(request);
-    request.printInfo();
     
     // 응답 전송
     ssize_t total_sent = 0;

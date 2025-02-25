@@ -83,3 +83,12 @@ bool Server::getDefaultServer() const{
 void Server::setDefaultServer() {
     default_server = true;
 }
+
+bool Server::isAllowedUri(const std::string &request_uri) {
+    if (request_uri.find(".css") != std::string::npos ||
+        request_uri.find(".svg") != std::string::npos ||
+        request_uri.find(".jpg") != std::string::npos ||
+        request_uri.find(".png") != std::string::npos)
+        return true;
+    return false;
+}

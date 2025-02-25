@@ -106,6 +106,7 @@ class Server
         int isValidRequestLine(const HttpRequest &request);
         int isValidRequestBody(const HttpRequest &request);
         int isValidRequestHeader(const HttpRequest &request);
+        bool isAllowedUri(const std::string &request_uri);
 
         // Response
         HttpResponse createHttpResponse(const HttpRequest &request);

@@ -20,7 +20,7 @@ System::System(int argc, char *argv[]) {
     checkArgumentNumber(argc);  // 인자 개수 확인
     checkConfigFileValidate(argv[1]);   // 파일 권한과 여부 확인
     parseConfigFile(argv[1]);   // 파싱
-    // printPort();
+    printPort();
     socketInKqueue();
     runServers();
 }

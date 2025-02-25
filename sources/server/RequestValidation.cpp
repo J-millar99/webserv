@@ -11,14 +11,19 @@ static int methodBitConverter(const std::string &method) {
 }
 
 int Server::isValidRequest(const HttpRequest &request) {
+    if (isAllowedUri(request.getUri()))
+        return OK;
     int status;
-
-    if ((status = isValidRequestLine(request)) != 200 ||
-        (status = isValidRequestHeader(request)) != 200 ||
-        (status = isValidRequestBody(request)) != 200)
+    status = isValidRequestLine(request);
+    if (status != OK)
         return status;
-
-    return 200;
+    status = isValidRequestHeader(request);
+    if (status != OK)
+        return status;
+    status = isValidRequestBody(request);
+    if (status != OK)
+        return status;
+    return OK;
 }
 
 // 에러 코드는 구체적 명시, 성공 코드는 200으로 설정
@@ -26,17 +31,18 @@ int Server::isValidRequestLine(const HttpRequest &request) {
     // 요청 라인 사이즈 검증
     if (request.getUri().size() > MAX_REQUEST_LINE_SIZE)
         return URI_TOO_LONG; // 414
+
     // 메소드 검증
     std::string request_method = request.getMethod();
     if (request_method != "GET" && request_method != "POST" && request_method != "DELETE")
         return METHOD_NOT_ALLOWED; // 405
+
     // URI 검증
     std::string request_uri = request.getUri();
-        
     for (std::list<Location>::iterator it = locations.begin(); it != locations.end(); it++) {
-        // uri가 일치하면 메소드 검증
         std::cerr << "요청 uri: " <<request_uri << " ";
         std::cerr << "현재 uri: " << it->url << std::endl;
+        // uri가 일치하면 메소드 검증
         if (request_uri == it->url) {
             if ((it->methods & methodBitConverter(request_method)) != 0)
                 return OK; // 200
@@ -72,3 +78,4 @@ int Server::isValidRequestBody(const HttpRequest &request) {
             return PAYLOAD_TOO_LARGE; // 413
     return OK; // 200
 }
+

@@ -13,9 +13,10 @@ static std::string getCurrentHttpDate() {
     return std::string(buffer);
 }
 
-static std::string readPage(int status_code) {
+static std::string readErrorPage(int status_code) {
     std::stringstream ss;
-    ss << "sources/" << "page/" << status_code << ".html";
+    int flag = status_code / 100;
+    ss << "page/" << flag << "xx/" << status_code << ".html";
 
     std::ifstream file(ss.str());
     if (!file.is_open())
@@ -27,6 +28,35 @@ static std::string readPage(int status_code) {
     file.close();
     
     return buffer.str();
+}
+
+static std::string sourcePath(const std::string &extension) {
+    std::string::size_type dotPos = extension.find_last_of('.');
+    std::string path = extension.substr(dotPos + 1);
+    std::string ret;
+    if (path == "css")
+        ret = "style" + extension;
+    else if (path == "jpg" || path == "png" || path == "svg")
+        ret = "icon" + extension;
+    else
+        ret = extension;
+    return ret;
+}
+
+static std::string readPage(const HttpRequest &request) {
+    std::stringstream ss;
+    ss << "page/" << sourcePath(request.getUri());
+
+    std::ifstream file(ss.str());
+    if (!file.is_open())
+        // 파일 열기 실패시 기본 에러 메시지 반환
+        return "<html><head><title>Error</title></head><body><h1>Error</h1><p>Something went wrong</p></body></html>";
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    file.close();
+    
+    return buffer.str();    
 }
 
 HttpResponse::HttpResponse(const HttpResponse &ref) {
@@ -86,21 +116,45 @@ void HttpResponse::createErrorPage(int status_code) {
     // create response line
     this->response_line = this->version + " " + std::to_string(this->status_code) + " " + this->status_message;
     // create response headers
-    this->headers.addHeader("Content-Type", "text/html");
-    this->headers.addHeader("Connection", "close");
+    this->headers.addHeader("Content-Type", "text/html; charset=UTF-8");
     this->headers.addHeader("Server", "WebServe");
     this->headers.addHeader("Date", getCurrentHttpDate());
     // create response body
-    this->response_body = readPage(status_code);
+    this->response_body = readErrorPage(status_code);
     this->headers.addHeader("Content-Length", std::to_string(this->response_body.length()));
 
     // create response message
     this->response_message = this->response_line + "\r\n" + this->headers.getHeaders() + "\r\n" + this->response_body;
 }
 
-void HttpResponse::createPage() {
+static std::string contentType(const std::string &uri) {
+    std::string::size_type dotPos = uri.find_last_of('.');
+    std::string extension = uri.substr(dotPos + 1);
+    std::string ret;
+    if (extension == "jpg" || extension == "png" || extension == "svg")
+        ret = "image/" + extension + "+xml";
+    else
+        ret = "text/" + extension;
+    return ret;
+}
+
+void HttpResponse::createPage(const HttpRequest &request) {
     this->version = "HTTP/1.1";
     this->status_code = OK;
     this->status_message = setStatusMessage(OK);
-    this->response_body = "<html><head><title>Page</title></head><body><h1>Page</h1><p>Page content</p></body></html>";
+
+    this->response_line = this->version + " " + std::to_string(this->status_code) + " " + this->status_message;
+    std::string type = contentType(request.getUri());
+    std::cout << type << std::endl;
+    // create response headers
+    this->headers.addHeader("Content-Type", type + "; charset=UTF-8");
+    this->headers.addHeader("Server", "WebServe");
+    this->headers.addHeader("Date", getCurrentHttpDate());
+
+    // create response body
+    this->response_body = readPage(request);
+    this->headers.addHeader("Content-Length", std::to_string(this->response_body.length()));
+
+    // create response message
+    this->response_message = this->response_line + "\r\n" + this->headers.getHeaders() + "\r\n" + this->response_body;
 }

@@ -44,7 +44,7 @@ class HttpResponse {
 
         std::string setStatusMessage(int code) const;
         void createErrorPage(int status_code);
-        void createPage();
+        void createPage(const HttpRequest &request);
         int length() const;
         std::string message() const;
 };
